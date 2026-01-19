@@ -12,8 +12,7 @@ def calcular_tinta(altura: float, largura: float, rendimento: float) -> dict:
 
     area = altura * largura
     latas_exatas = area / rendimento
-    # Melhoria de performance e legibilidade usando math.ceil
-    latas_necessarias = math.ceil(latas_exatas) 
+    latas_necessarias = math.ceil(latas_exatas)
 
     return {
         "area": area,
