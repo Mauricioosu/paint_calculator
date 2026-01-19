@@ -1,5 +1,6 @@
 import math
 
+
 def calcular_tinta(altura: float, largura: float, rendimento: float) -> dict:
     """
     Calcula a necessidade de tinta de forma pura.
