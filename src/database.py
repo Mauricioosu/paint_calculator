@@ -1,5 +1,5 @@
 import sqlite3
-import hashlib
+import bcrypt
 
 
 # Define o caminho do banco de dados
@@ -20,16 +20,11 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
+            password_hash BLOB NOT NULL
         )
     """)
     conn.commit()
     conn.close()
-
-
-def hash_senha(senha):
-    """Gera um hash SHA-256 da senha."""
-    return hashlib.sha256(str.encode(senha)).hexdigest()
 
 
 def criar_usuario(username, password):
@@ -41,7 +36,8 @@ def criar_usuario(username, password):
     try:
         conn = criar_conexao()
         cursor = conn.cursor()
-        pwd_hash = hash_senha(password)
+        bytes_senha = password.encode('utf-8')
+        pwd_hash = bcrypt.hashpw(bytes_senha, bcrypt.gensalt())
         cursor.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)",
                        (username, pwd_hash))
         conn.commit()
@@ -53,16 +49,16 @@ def criar_usuario(username, password):
 
 
 def verificar_login(username, password):
-    """
-    Verifica se usuário e senha conferem.
-    Returns:
-        True se válido, False caso contrário.
-    """
+    """Verifica a senha comparando o hash armazenado."""
     conn = criar_conexao()
     cursor = conn.cursor()
-    pwd_hash = hash_senha(password)
-    cursor.execute("SELECT * FROM users WHERE username = ? AND password_hash = ?",
-                   (username, pwd_hash))
-    user = cursor.fetchone()
+    # Busca o hash armazenado no banco
+    cursor.execute("SELECT password_hash FROM users WHERE username = ?", (username,))
+    resultado = cursor.fetchone()
     conn.close()
-    return user is not None
+    if resultado:
+        hash_armazenado = resultado[0]
+        senha_fornecida = password.encode('utf-8')
+        # O bcrypt verifica se a senha bate com o hash (magia segura)
+        return bcrypt.checkpw(senha_fornecida, hash_armazenado)
+    return False
