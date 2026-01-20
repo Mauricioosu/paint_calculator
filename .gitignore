@@ -3,3 +3,6 @@ __pycache__/
 .env
 *.pyc
 .flake8
+
+# Ignore database file
+users.db
